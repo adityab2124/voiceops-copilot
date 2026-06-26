@@ -1,6 +1,6 @@
 import streamlit as st
 
-from data_utils import apply_filters, load_data
+from data_utils import load_data
 from pages.account_health import render_account_health_page
 from pages.calling_compliance import render_calling_compliance_page
 from pages.data_pipeline import render_data_pipeline_page
@@ -26,7 +26,7 @@ page = st.sidebar.radio(
     ],
 )
 
-filtered = apply_filters(df)
+filtered = df
 
 if page == "Data Pipeline":
     render_data_pipeline_page(df, filtered)
