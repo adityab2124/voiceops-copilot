@@ -38,6 +38,10 @@ def _get_raw_df():
 def render_data_pipeline_page(df, filtered):
     st.title("Data Pipeline")
     st.caption("Raw call-log layer that feeds downstream TAM workflows.")
+    st.caption(
+        "This raw log is the single source for every page — regenerate it and all analytics, "
+        "QA flags, and diagnoses recompute live."
+    )
 
     if st.button("🔄 Generate New Raw Dataset", type="primary"):
         from generate_sample_data import generate_raw_call_log
