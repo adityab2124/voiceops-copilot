@@ -525,15 +525,59 @@ def generate_engineering_ticket_with_gemini(
     priority,
     related_call_ids,
 ):
+    related_ids_text = ", ".join(related_call_ids) if related_call_ids else "None"
+
+    def offline_engineering_ticket():
+        return f"""Title:
+Update {voicebot} for {client}: {desired_behavior}
+
+Background:
+Request source: {request_source}
+Client request: {client_request}
+
+Problem:
+{current_behavior}
+
+Requested Change:
+{desired_behavior}
+
+Requirements:
+- Keep the existing voicebot flow stable unless the requested behavior requires a change.
+- Add the new behavior only for eligible conversations and confirmed client-approved scenarios.
+- Escalate to a human when the customer disputes the balance, says they already paid, asks for a person, or raises a compliance-sensitive concern.
+- Avoid threatening, legal, or pressure-based language.
+
+Acceptance Criteria:
+- The bot can handle the requested scenario in a test conversation.
+- The bot does not offer unsupported options when eligibility is unclear.
+- The bot preserves safe escalation paths.
+- TAM can review the updated behavior using related call examples.
+
+Edge Cases:
+- Customer is not the right party.
+- Customer asks for a human.
+- Customer disputes the balance or says they already paid.
+- Customer expresses hardship or cannot pay today.
+
+Dependencies / Open Questions:
+- Confirm exact eligibility rules with the client.
+- Confirm whether any payment method, link, or escalation flow requires engineering integration.
+- Confirm rollout scope across clients and voicebots.
+
+Priority:
+{priority}
+
+Related Evidence:
+Related call IDs: {related_ids_text}
+"""
+
     api_key = st.secrets.get("GEMINI_API_KEY", None)
 
     if not api_key:
-        return {"error": "Missing GEMINI_API_KEY. Add it to .streamlit/secrets.toml."}
+        return offline_engineering_ticket()
 
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.5-flash")
-
-    related_ids_text = ", ".join(related_call_ids) if related_call_ids else "None"
 
     prompt = f"""
 You are a Technical Account Manager translating a client request into a clear engineering ticket.
@@ -576,5 +620,5 @@ Related Evidence:
             generation_config={"temperature": 0},
         )
         return response.text
-    except Exception as e:
-        return {"error": str(e)}
+    except Exception:
+        return offline_engineering_ticket()
